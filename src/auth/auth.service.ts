@@ -29,8 +29,7 @@ export class AuthService {
     await this.validateUser(email, password);
     const user = await this.usersService.findOne({ where: { email } });
     const payload = {
-      metaData: { superadmin: user.isSuperAdmin },
-      permissions: user.permissions,
+      metaData: { superadmin: user.roleId },
       email,
       password,
     };

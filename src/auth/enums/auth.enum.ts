@@ -1,7 +1,12 @@
 export enum EPermissions {
-  ADMIN_READ = 'admin:read',
-  ADMIN_CREATE = 'admin:create',
-  ADMIN_UPDATE = 'admin:update',
-  ADMIN_DELETE = 'admin:delete',
+  READ = 'read',
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  MANAGE = 'manage',
+}
+
+export enum ERoles {
+  SUPER_ADMIN = 'super_admin',
   USER = 'user',
 }

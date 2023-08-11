@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { EPermissions } from 'src/auth/enums/auth.enum';
+import { EPermissions, ERoles } from 'src/auth/enums/auth.enum';
 
 export class CreateUserDto {
   @IsEmail()
@@ -21,11 +21,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   name: string;
 
-  @IsOptional()
-  isSuperAdmin: boolean;
-
-  @IsArray()
-  @IsEnum(EPermissions, { each: true })
-  @IsOptional()
-  permissions: EPermissions[];
+  @IsEnum(ERoles)
+  @IsNotEmpty()
+  role: ERoles;
 }

@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './entities/users.entity';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, In, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/users-create.dto';
 import * as argon2 from 'argon2';
 import { EPermissions } from 'src/auth/enums/auth.enum';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +18,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
+    private rolesService: RolesService,
   ) {}
 
   async findAllUsers(): Promise<UsersEntity[]> {
@@ -43,15 +45,13 @@ export class UsersService {
       throw new BadRequestException('Email is existed');
     }
     const hashPassword = await argon2.hash(createUserDto.password);
-    if (!createUserDto.isSuperAdmin) {
-      createUserDto.permissions = [EPermissions.USER];
-    }
-    if (!createUserDto.permissions?.length) {
-      throw new BadRequestException('Must have permission');
-    }
+    const role = await this.rolesService.findOneRoleByRoleName(
+      createUserDto.role,
+    );
     try {
       const user = await this.userRepository.save({
         ...createUserDto,
+        role,
         password: hashPassword,
       });
       delete user.password;

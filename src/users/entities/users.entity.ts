@@ -1,6 +1,6 @@
-import { EPermissions } from 'src/auth/enums/auth.enum';
 import { BaseEntities } from 'src/db/base.entity';
-import { Column, Entity } from 'typeorm';
+import { RolesEntity } from 'src/roles/entities/roles.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class UsersEntity extends BaseEntities {
@@ -13,16 +13,12 @@ export class UsersEntity extends BaseEntities {
   @Column()
   name: string;
 
-  @Column({ default: false, name: 'super_admin' })
-  isSuperAdmin: boolean;
+  @ManyToOne(() => RolesEntity, (role) => role.users)
+  @JoinColumn({ name: 'role_id' })
+  role: RolesEntity;
 
-  @Column({
-    type: 'enum',
-    enum: EPermissions,
-    array: true,
-    default: [EPermissions.USER],
-  })
-  permissions: EPermissions[];
+  @Column({ name: 'role_id' })
+  roleId: string;
 
   toJSON() {
     delete this.password;

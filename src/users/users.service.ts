@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +13,7 @@ import { EPermissions } from 'src/auth/enums/auth.enum';
 
 @Injectable()
 export class UsersService {
+  logger = new Logger(UsersService.name);
   constructor(
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
@@ -44,16 +46,20 @@ export class UsersService {
     if (!createUserDto.isSuperAdmin) {
       createUserDto.permissions = [EPermissions.USER];
     }
-    console.log(createUserDto.permissions);
     if (!createUserDto.permissions?.length) {
       throw new BadRequestException('Must have permission');
     }
-    const user = await this.userRepository.save({
-      ...createUserDto,
-      password: hashPassword,
-    });
-    delete user.password;
-    return user;
+    try {
+      const user = await this.userRepository.save({
+        ...createUserDto,
+        password: hashPassword,
+      });
+      delete user.password;
+      return user;
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new BadRequestException('Email is existed');
+    }
   }
 
   async deleteUser(id: string): Promise<{ message: string }> {

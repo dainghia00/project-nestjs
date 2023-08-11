@@ -1,6 +1,7 @@
 import {
   ExecutionContext,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -15,6 +16,7 @@ import { EPermissions } from '../enums/auth.enum';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
+  logger = new Logger(JwtAuthGuard.name);
   constructor(
     private reflector: Reflector,
     private configService: ConfigService,
@@ -39,45 +41,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       throw new UnauthorizedException();
     }
 
-    const requiredSuperAdmin = this.reflector.get<boolean>(
-      IS_SUPER_ADMIN,
-      context.getHandler(),
-    );
-    const isSuperAdmin = request.user?.metaData.superAdmin;
-
-    if (requiredSuperAdmin) {
-      if (!isSuperAdmin) {
-        throw new UnauthorizedException('User not permitted');
-      }
-    }
-
-    const requriedPermissions = this.reflector.get<string[]>(
-      PERMISSIONS_KEY,
-      context.getHandler(),
-    );
-
-    const usersPermissions = new Map(
-      request.user?.permissions.map((permission: EPermissions) => [
-        permission,
-        true,
-      ]),
-    );
-
-    if (requriedPermissions !== undefined) {
-      if (requriedPermissions.length === 0) {
-        throw new Error(
-          'Permission decorator set, but empty, either remove decorator or add permissions',
-        );
-      }
-      requriedPermissions.forEach((requriedPermission) => {
-        if (!usersPermissions.has(requriedPermission)) {
-          throw new UnauthorizedException(
-            `Missing permission ${requriedPermission}`,
-          );
-        }
-      });
-    }
-
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get('JWT_SECRET_KEY'),
@@ -85,8 +48,47 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       // // 💡 We're assigning the payload to the request object here
       // // so that we can access it in our route handlers
       request['user'] = payload;
+      const requiredSuperAdmin = this.reflector.get<boolean>(
+        IS_SUPER_ADMIN,
+        context.getHandler(),
+      );
+      const isSuperAdmin = request.user?.metaData.superadmin;
+
+      if (requiredSuperAdmin) {
+        if (!isSuperAdmin) {
+          throw new UnauthorizedException('User not permitted');
+        }
+      }
+
+      const requriedPermissions = this.reflector.get<string[]>(
+        PERMISSIONS_KEY,
+        context.getHandler(),
+      );
+
+      const usersPermissions = new Map(
+        request.user?.permissions.map((permission: EPermissions) => [
+          permission,
+          true,
+        ]),
+      );
+      console.log(requriedPermissions);
+      if (requriedPermissions !== undefined) {
+        if (requriedPermissions.length === 0) {
+          throw new Error(
+            'Permission decorator set, but empty, either remove decorator or add permissions',
+          );
+        }
+        requriedPermissions.forEach((requriedPermission) => {
+          if (!usersPermissions.has(requriedPermission)) {
+            throw new UnauthorizedException(
+              `Missing permission ${requriedPermission}`,
+            );
+          }
+        });
+      }
     } catch (error) {
-      throw new UnauthorizedException();
+      this.logger.error(error.message);
+      throw new UnauthorizedException(error.message);
     }
     return true;
   }

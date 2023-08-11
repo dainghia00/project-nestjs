@@ -20,7 +20,7 @@ export class UsersEntity extends BaseEntities {
     type: 'enum',
     enum: EPermissions,
     array: true,
-    default: EPermissions.USER,
+    default: [EPermissions.USER],
   })
   permissions: EPermissions[];
 

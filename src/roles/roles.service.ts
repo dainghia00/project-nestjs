@@ -7,14 +7,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RolesEntity } from './entities/roles.entity';
 import { FindOneOptions, Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/roles-create.dto';
-import { ERoles } from 'src/auth/enums/auth.enum';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { EPermissions, ERoles } from 'src/auth/enums/auth.enum';
+import { PermissionsService } from 'src/permissions/permissions.service';
 
 @Injectable()
 export class RolesService {
   constructor(
     @InjectRepository(RolesEntity)
     private rolesRepository: Repository<RolesEntity>,
+    private permissionsService: PermissionsService
   ) {}
 
   async findAll() {
@@ -36,7 +37,7 @@ export class RolesService {
   async findOneRoleByRoleName(name: string) {
     const role = await this.findOne({ where: { roleName: name as ERoles } });
     if (!role) {
-      throw new NotFoundException();
+      throw new NotFoundException("Role not found");
     }
     return role;
   }
@@ -49,5 +50,15 @@ export class RolesService {
       throw new BadRequestException();
     }
     return await this.rolesRepository.save(createRoleDto);
+  }
+
+  async addPermissionsForRole(roleName: ERoles, permissions: EPermissions[]) {
+    const role = await this.findOne({where: { roleName }, relations: { permissions: true }});
+    Promise.allSettled( 
+      permissions.map(async (permission) => {
+      const permissionId = await this.permissionsService.findOnePermissionByName(permission);
+      role.permissions.push(permissionId);
+    }))
+   return await this.rolesRepository.save(role);
   }
 }

@@ -1,7 +1,7 @@
 import { EPermissions } from 'src/auth/enums/auth.enum';
 import { BaseEntities } from 'src/db/base.entity';
 import { RolesEntity } from 'src/roles/entities/roles.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
 
 @Entity('permissions')
 export class PermissionsEntity extends BaseEntities {
@@ -12,10 +12,22 @@ export class PermissionsEntity extends BaseEntities {
   })
   permission: EPermissions;
 
-  @ManyToOne(() => RolesEntity, (role) => role.permissions)
-  @JoinColumn({ name: 'role_id' })
-  role: RolesEntity;
+  @ManyToMany(() => RolesEntity, (role) => role.permissions)
+  @JoinTable(
+    {
+      name: 'role_permissions_permission',
+    joinColumn: {
+      name: 'role_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'permission_id',
+      referencedColumnName: 'id',
+    }
+    }
+  )
+  roles: RolesEntity[];
 
-  @Column({ name: 'role_id', nullable: true })
-  roleId: string;
+  // @Column({ name: 'role_id', nullable: true })
+  // roleId: string;
 }

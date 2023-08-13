@@ -2,6 +2,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { commonDbConfig } from 'src/db/common-db-config';
 
+
 dotenv.config();
 
 export const dataSourceOptions: DataSourceOptions = {

@@ -10,9 +10,10 @@ import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { IS_SUPER_ADMIN } from '../decorators/roles.decorator';
+import { ROLES_KEY, Roles } from '../decorators/roles.decorator';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { EPermissions, ERoles } from '../enums/auth.enum';
+import { PermissionsEntity } from 'src/permissions/entities/permissions.entity';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -49,44 +50,47 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       // // so that we can access it in our route handlers
       request['user'] = payload;
       const requiredSuperAdmin = this.reflector.get<string>(
-        IS_SUPER_ADMIN,
+        ROLES_KEY,
         context.getHandler(),
       );
       const isSuperAdmin = request.user?.metaData.superadmin;
-
+      //console.log(request.user);
       if (requiredSuperAdmin !== undefined) {
         if (isSuperAdmin !== ERoles.SUPER_ADMIN) {
           throw new UnauthorizedException('User not permitted');
         }
       }
 
-      // const requriedPermissions = this.reflector.get<string[]>(
-      //   PERMISSIONS_KEY,
-      //   context.getHandler(),
-      // );
-      // console.log(request.user?.permissions);
+      const requriedPermissions = this.reflector.get<string[]>(
+        PERMISSIONS_KEY,
+        context.getHandler(),
+      );
+      
+      console.log(request.user?.permissions)
 
-      // const usersPermissions = new Map(
-      //   request.user?.permissions.map((permission: EPermissions) => [
-      //     permission,
-      //     true,
-      //   ]),
-      // );
+      const usersPermissions = new Map(
+        request.user?.permissions.map((permission: PermissionsEntity) => [
+          permission.permission,
+          true,
+        ]),
+      );
 
-      // if (requriedPermissions !== undefined) {
-      //   if (requriedPermissions.length === 0) {
-      //     throw new Error(
-      //       'Permission decorator set, but empty, either remove decorator or add permissions',
-      //     );
-      //   }
-      //   requriedPermissions.forEach((requriedPermission) => {
-      //     if (!usersPermissions.has(requriedPermission)) {
-      //       throw new UnauthorizedException(
-      //         `Missing permission ${requriedPermission}`,
-      //       );
-      //     }
-      //   });
-      // }
+      console.log(usersPermissions)
+
+      if (requriedPermissions !== undefined) {
+        if (requriedPermissions.length === 0) {
+          throw new Error(
+            'Permission decorator set, but empty, either remove decorator or add permissions',
+          );
+        }
+        requriedPermissions.forEach((requriedPermission) => {
+          if (!usersPermissions.has(requriedPermission)) {
+            throw new UnauthorizedException(
+              `Missing permission ${requriedPermission}`,
+            );
+          }
+        });
+      }
     } catch (error) {
       this.logger.error(error.message);
       throw new UnauthorizedException(error.message);

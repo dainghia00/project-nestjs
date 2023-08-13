@@ -5,12 +5,14 @@ import * as argon2 from 'argon2';
 import { AuthSignInDto } from './dto/auth-signIn.dto';
 import { IAuthResponse } from './interfaces/auth.interface';
 import { JwtService } from '@nestjs/jwt';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private rolesService: RolesService
   ) {}
 
   async validateUser(email: string, password: string): Promise<UsersEntity> {
@@ -27,12 +29,15 @@ export class AuthService {
 
   async signIn({ email, password }: AuthSignInDto): Promise<IAuthResponse> {
     await this.validateUser(email, password);
-    const user = await this.usersService.findOne({ where: { email } });
+    const user = await this.usersService.findOne({ where: { email }, relations: {role: true} });
+    const role = await this.rolesService.findOne({where:{roleName: user.role.roleName}, relations: {permissions:true}});
     const payload = {
-      metaData: { superadmin: user.roleId },
+      metaData: { superadmin: user.role.roleName },
+      permissions: role.permissions,
       email,
       password,
     };
+    console.log(payload);
     const accessToken = this.jwtService.sign(payload, { expiresIn: '12h' });
     return {
       accessToken,

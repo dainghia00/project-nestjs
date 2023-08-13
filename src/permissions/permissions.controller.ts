@@ -19,19 +19,9 @@ export class PermissionsController {
     return await this.permissionsService.findOnePermission(id);
   }
 
+  @Public()
   @Post()
   async createRole(@Body() createPermissionDto: CreatePermissionDto) {
     return await this.permissionsService.createPermission(createPermissionDto);
-  }
-
-  @Patch()
-  async update(
-    @User() user: UsersEntity,
-    @Body('permission') permission: EPermissions[],
-  ) {
-    return await this.permissionsService.updatePermissionByRoleId(
-      user.roleId,
-      permission,
-    );
   }
 }

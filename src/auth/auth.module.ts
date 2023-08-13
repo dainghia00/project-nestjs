@@ -7,12 +7,14 @@ import { JwtAuthGuard } from './guards/auth.guard';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
     PassportModule,
+    RolesModule,
     {
       ...JwtModule.registerAsync({
         imports: [ConfigModule],

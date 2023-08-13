@@ -16,7 +16,6 @@ export class PermissionsService {
   constructor(
     @InjectRepository(PermissionsEntity)
     private permissionsRepository: Repository<PermissionsEntity>,
-    private rolesService: RolesService,
   ) {}
 
   async findAll() {
@@ -28,30 +27,19 @@ export class PermissionsService {
   }
 
   async findOnePermission(id: string) {
-    const role = await this.findOne({ where: { id } });
-    if (!role) {
+    const permisison = await this.findOne({ where: { id } });
+    if (!permisison) {
       throw new NotFoundException();
     }
-    return role;
+    return permisison;
   }
 
-  async updatePermissionByRoleId(roleId: string, permissions: EPermissions[]) {
-    return Promise.allSettled(
-      permissions.map(async (permission) => {
-        const role = await this.rolesService.findOneRole(roleId);
-        const isPermission = await this.findOne({ where: { permission } });
-        console.log(
-          await this.permissionsRepository.save({
-            id: isPermission.id,
-            role,
-          }),
-        );
-        return await this.permissionsRepository.save({
-          id: isPermission.id,
-          role,
-        });
-      }),
-    );
+  async findOnePermissionByName(name: EPermissions) {
+    const permisison = await this.findOne({ where: { permission: name }});
+    if(!permisison) {
+      throw new NotFoundException();
+    }
+    return permisison;
   }
 
   async createPermission(createPermissionDto: CreatePermissionDto) {

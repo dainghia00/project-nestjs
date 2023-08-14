@@ -7,9 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsEntity } from './entities/permissions.entity';
 import { FindOneOptions, Repository } from 'typeorm';
 import { CreatePermissionDto } from './dto/permissions-create.dto';
-
 import { EPermissions } from 'src/auth/enums/auth.enum';
-import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class PermissionsService {
@@ -35,8 +33,8 @@ export class PermissionsService {
   }
 
   async findOnePermissionByName(name: EPermissions) {
-    const permisison = await this.findOne({ where: { permission: name }});
-    if(!permisison) {
+    const permisison = await this.findOne({ where: { permission: name } });
+    if (!permisison) {
       throw new NotFoundException();
     }
     return permisison;

@@ -13,9 +13,8 @@ export class PermissionsEntity extends BaseEntities {
   permission: EPermissions;
 
   @ManyToMany(() => RolesEntity, (role) => role.permissions)
-  @JoinTable(
-    {
-      name: 'role_permissions_permission',
+  @JoinTable({
+    name: 'roles_permissions',
     joinColumn: {
       name: 'role_id',
       referencedColumnName: 'id',
@@ -23,11 +22,7 @@ export class PermissionsEntity extends BaseEntities {
     inverseJoinColumn: {
       name: 'permission_id',
       referencedColumnName: 'id',
-    }
-    }
-  )
+    },
+  })
   roles: RolesEntity[];
-
-  // @Column({ name: 'role_id', nullable: true })
-  // roleId: string;
 }

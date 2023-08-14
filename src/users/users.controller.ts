@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Patch,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersEntity } from './entities/users.entity';
 import { CreateUserDto } from './dto/users-create.dto';
@@ -11,7 +19,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Permissions(EPermissions.MANAGE)
+  @Permissions(EPermissions.SUPER_ADMIN_READ, EPermissions.ADMIN_READ)
   @Get()
   async findAllUsers(): Promise<UsersEntity[]> {
     return await this.usersService.findAllUsers();
@@ -22,15 +30,16 @@ export class UsersController {
     return await this.usersService.findOneUser(id);
   }
 
-  @Roles(ERoles.SUPER_ADMIN)
-  @Permissions(EPermissions.CREATE)
+  // @Roles(ERoles.SUPER_ADMIN)
+  // @Permissions(EPermissions.SUPER_ADMIN_CREATE)
+  @Public()
   @Post()
   async createUser(@Body() createUserDto: CreateUserDto): Promise<UsersEntity> {
     return await this.usersService.createUser(createUserDto);
   }
 
-  //@Permissions(EPermissions.ADMIN_DELETE)
-  @Public()
+  @Roles(ERoles.SUPER_ADMIN)
+  @Permissions(EPermissions.SUPER_ADMIN_DELETE)
   @Delete(':id')
   async deleteUser(@Param('id') id: string): Promise<{ message: string }> {
     return await this.usersService.deleteUser(id);

@@ -15,7 +15,7 @@ export class RolesService {
   constructor(
     @InjectRepository(RolesEntity)
     private rolesRepository: Repository<RolesEntity>,
-    private permissionsService: PermissionsService
+    private permissionsService: PermissionsService,
   ) {}
 
   async findAll() {
@@ -37,7 +37,7 @@ export class RolesService {
   async findOneRoleByRoleName(name: string) {
     const role = await this.findOne({ where: { roleName: name as ERoles } });
     if (!role) {
-      throw new NotFoundException("Role not found");
+      throw new NotFoundException('Role not found');
     }
     return role;
   }
@@ -53,12 +53,17 @@ export class RolesService {
   }
 
   async addPermissionsForRole(roleName: ERoles, permissions: EPermissions[]) {
-    const role = await this.findOne({where: { roleName }, relations: { permissions: true }});
-    Promise.allSettled( 
+    const role = await this.findOne({
+      where: { roleName },
+      relations: { permissions: true },
+    });
+    await Promise.allSettled(
       permissions.map(async (permission) => {
-      const permissionId = await this.permissionsService.findOnePermissionByName(permission);
-      role.permissions.push(permissionId);
-    }))
-   return await this.rolesRepository.save(role);
+        const permissionId =
+          await this.permissionsService.findOnePermissionByName(permission);
+        role.permissions.push(permissionId);
+      }),
+    );
+    return await this.rolesRepository.save(role);
   }
 }

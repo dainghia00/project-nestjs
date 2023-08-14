@@ -53,7 +53,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         ROLES_KEY,
         context.getHandler(),
       );
-      const isSuperAdmin = request.user?.metaData.superadmin;
+      const isSuperAdmin = request.user?.role;
       //console.log(request.user);
       if (requiredSuperAdmin !== undefined) {
         if (isSuperAdmin !== ERoles.SUPER_ADMIN) {
@@ -65,8 +65,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         PERMISSIONS_KEY,
         context.getHandler(),
       );
-      
-      console.log(request.user?.permissions)
+
+      console.log(request.user?.permissions);
 
       const usersPermissions = new Map(
         request.user?.permissions.map((permission: PermissionsEntity) => [
@@ -75,7 +75,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         ]),
       );
 
-      console.log(usersPermissions)
+      console.log(usersPermissions);
 
       if (requriedPermissions !== undefined) {
         if (requriedPermissions.length === 0) {
